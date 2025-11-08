@@ -43,35 +43,134 @@ def xpt_to_csv(xpt_path, csv_path, extract_specific_vars=True):
     """
     # Define the BRFSS 2024 variables - Updated based on codebook analysis
     brfss_variables = [
-        'SEQNO',         # Patient ID (sequence number)
-        '_AGEG5YR',      # Age (age groups in 5-year intervals)
-        'SEXVAR',        # Sex (1=male, 2=female) - UPDATED FROM SEX TO SEXVAR
-        'DIABETE4',      # Diabetes (diabetes status) - UPDATED FROM DIABETE3 TO DIABETE4
-        'FLUSHOT7',      # Flu vaccination
-        'SMOKE100',      # Smoked at least 100 cigarettes in lifetime
-        'ALCDAY4',       # Alcohol consumption days (2024 version)  
-        'DRNK3GE5',      # Binge drinking frequency
-        'MAXDRNKS',      # Most drinks on single occasion
-        '_RFSMOK3',      # Smoking (_RFSMOK3: 1=current smoker, 0=former/never)
-        'SMOKDAY2',      # Smoking (base variable for _RFSMOK3)
-        '_BMI5',         # Obesity/BMI (BMI categories)
-        '_BMI5CAT',      # BMI categories (alternative)
-        '_RFBMI5',       # BMI risk factor
-        '_TOTINDA',      # Exercise (1=meets aerobic guidelines, 0=no)
-        'EXERANY2',      # Exercise in Past 30 Days (main physical activity variable in 2024)
-        'DIFFWALK',      # Difficulty Walking or Climbing Stairs
-        'CVDSTRK3',      # Previous Heart Problems (CVD/stroke)
-        'CVDINFR4',      # Previous Heart Problems (heart attack)
-        'CVDCRHD4',      # Previous Heart Problems (coronary/angina) - UPDATED FROM CHCSCNCR TO CVDCRHD4
-        'GENHLTH',       # General Health Status - ADDED KEY HEALTH VARIABLE
-        'MENTHLTH',      # Stress Level (poor mental health days)
-        'POORHLTH',      # Poor physical health days
-        'INCOME3',       # Income (household income categories) - UPDATED FROM INCOME2 TO INCOME3
-        'WEIGHT2',       # Weight - ADDED PHYSICAL MEASUREMENT
-        'HEIGHT3',       # Height - ADDED PHYSICAL MEASUREMENT  
-        '_STATE',        # Country/State (state code)
-        '_PSU',          # Region-Specific: primary sampling unit
-        '_RFHLTH'        # Region-Specific: health prevalence by region
+        # 'SEQNO',         # Patient ID (sequence number)
+        # '_AGEG5YR',      # Age (age groups in 5-year intervals)
+        # 'DIABETE4',      # Diabetes (diabetes status) - UPDATED FROM DIABETE3 TO DIABETE4
+        # 'FLUSHOT7',      # Flu vaccination
+        # 'SMOKE100',      # Smoked at least 100 cigarettes in lifetime
+        # 'ALCDAY4',       # Alcohol consumption days (2024 version)  
+        # 'DRNK3GE5',      # Binge drinking frequency
+        # 'MAXDRNKS',      # Most drinks on single occasion
+        # '_RFSMOK3',      # Smoking (_RFSMOK3: 1=current smoker, 0=former/never)
+        # 'SMOKDAY2',      # Smoking (base variable for _RFSMOK3)
+        # '_BMI5',         # Obesity/BMI (BMI categories)
+        # '_BMI5CAT',      # BMI categories (alternative)
+        # '_RFBMI5',       # BMI risk factor
+        # '_TOTINDA',      # Exercise (1=meets aerobic guidelines, 0=no)
+        # 'EXERANY2',      # Exercise in Past 30 Days (main physical activity variable in 2024)
+        # 'DIFFWALK',      # Difficulty Walking or Climbing Stairs
+        # 'CVDSTRK3',      # Previous Heart Problems (CVD/stroke)
+        # 'CVDINFR4',      # Previous Heart Problems (heart attack)
+        # 'CVDCRHD4',      # Previous Heart Problems (coronary/angina) - UPDATED FROM CHCSCNCR TO CVDCRHD4
+        # 'GENHLTH',       # General Health Status - ADDED KEY HEALTH VARIABLE
+        # 'MENTHLTH',      # Stress Level (poor mental health days)
+        # 'POORHLTH',      # Poor physical health days
+        # 'WEIGHT2',       # Weight - ADDED PHYSICAL MEASUREMENT
+        # 'HEIGHT3',       # Height - ADDED PHYSICAL MEASUREMENT  
+        # '_STATE',        # Country/State (state code)
+        # '_PSU',          # Region-Specific: primary sampling unit
+        # '_RFHLTH',       # Region-Specific: health prevalence by region
+        # '_INCOMG1',      # Region-Specific: income level
+        # 'INCOME3',       # Income (household income categories) - UPDATED FROM INCOME2 TO INCOME3
+        # '_SEX',          # Sex (redundant with SEXVAR, but included for completeness)
+
+        # 'SEQNO', # Patient ID (sequence number)
+        '_AGEG5YR',      # Age Group (5-year intervals)
+        'DIABETE4',      # Diabetes Status (updated from DIABETE3 to DIABETE4)
+        'FLUSHOT7',      # Flu Vaccination
+        'SMOKE100',      # Smoked 100 Cigarettes in Lifetime
+        'ALCDAY4',      # Alcohol Days Per Month
+        'DRNK3GE5',      # Binge Drinking Episodes
+        'MAXDRNKS',      # Max Drinks Single Occasion
+        '_RFSMOK3',      # Smoking Status
+        'SMOKDAY2',      # Smoking Frequency
+        '_BMI5',         # BMI Category
+        '_BMI5CAT',     # BMI Category (Alternative)
+        '_RFBMI5',      # BMI Risk Factor
+        '_TOTINDA',     # Exercise Guidelines Met
+        'EXERANY2',     # Exercise in Past 30 Days
+        'DIFFWALK',    # Difficulty Walking Stairs
+        'CVDSTRK3',    # CVD Stroke History
+        'CVDINFR4',    # Heart Attack History
+        'CVDCRHD4',    # Coronary Heart Disease (Updated from CHCSCNCR to CVDCRHD4)
+        'GENHLTH',     # General Health Status (Added new variable)
+        'MENTHLTH',    # Mental Health Days
+        'POORHLTH',    # Poor Physical Health Days
+        'WEIGHT2',     # Weight (Pounds) - Added new variable
+        'HEIGHT3',     # Height (Feet/Inches) - Added new variable
+        '_STATE',      # State Code
+        '_PSU',        # Primary Sampling Unit
+        '_RFHLTH',     # Regional Health Prevalence
+        '_INCOMG1',    # Income Level
+        'INCOME3',     # Income Categories - Added new variable
+        '_SEX',       # Sex
+        # --- Added below: Only those not already present ---
+        # Demographics & Socioeconomic Status
+        'EDUCA',     # Education_Level
+        'RENTHOM1',  # Own_or_Rent_Home
+        'EMPLOY1',   # Employment_Status
+        'MARITAL',   # Marital_Status
+        'VETERAN3',  # Veteran_Status
+        'CHILDREN',  # Num_Children
+        # '_IMPRACE',  # Imputed_Race
+        # '_HISPANC',  # Hispanic_Origin
+        # '_RACE',     # Race
+        # Health Access & Utilization
+        
+        'PERSDOC3',  # Personal_Doctor
+        'MEDCOST1',  # Could_Not_Afford_Doctor
+        'CHECKUP1',  # Last_Checkup
+        # Health Behaviors
+        # 'USENOW3',  # Smokeless_Tobacco_Use
+        # 'ECIGNOW3',  # E_Cig_Use
+        # 'AVEDRNK4',  # Avg_Drinks_Per_Day
+        # 'SSBSUGR2',  # Sugary_Soda_Freq
+        # 'SSBFRUT3',  # Sugary_FruitDrink_Freq
+        # Chronic Conditions & Health Status
+        'PHYSHLTH',  # Physical_Health_NotGood_Days
+        'ASTHMA3',   # Asthma_Ever
+        'ASTHNOW',   # Asthma_Current
+        # 'CHCSCNC1',  # Skin_Cancer
+        # 'CHCOCNC1',  # Other_Cancer
+        'CHCCOPD3',  # COPD
+        'ADDEPEV3',  # Depression
+        # 'CHCKDNY2',  # Kidney_Disease
+        # 'HAVARTH4',  # Arthritis
+        # Disability & Functional Status
+        # 'DEAF',  # Deaf_or_Hearing_Difficulty
+        # 'BLIND',  # Blind_or_Visual_Difficulty
+        # 'DECIDE',  # Difficulty_Concentrating
+        # 'DIFFDRES',  # Difficulty_Dressing_Bathing
+        # 'DIFFALON',  # Difficulty_Doing_Errands_Alone
+        # Social Determinants & Adversity
+        'LSATISFY',  # Life_Satisfaction
+        'EMTSUPRT',  # Emotional_Support
+        # 'SDLONELY',  # Loneliness
+        # 'SDHEMPLY',  # Lost_Employment
+        # 'FOODSTMP',  # Received_Food_Stamps
+        'SDHFOOD1',  # Food_Insecurity
+        'SDHBILLS',  # Unable_to_Pay_Bills
+        # 'SDHUTILS',  # Utility_Shutoff_Threat
+        # 'SDHTRNSP',  # Transportation_Insecurity
+        # 'ACEDEPRS',  # ACE_Depressed_Household
+        # 'ACEDRINK',  # ACE_Alcoholic_Household
+        # 'ACEDRUGS',  # ACE_Drug_Abuse_Household
+        # 'ACEPRISN',  # ACE_Prison_Household
+        # 'ACEDIVRC',  # ACE_Parents_Divorced
+        # 'ACEPUNCH',  # ACE_Parental_Violence
+        # 'ACEHURT1',  # ACE_Parental_Physical_Abuse
+        # 'ACESWEAR',  # ACE_Parental_Emotional_Abuse
+        # 'ACETOUCH',  # ACE_Sexual_Abuse
+        # 'ACETTHEM',  # ACE_Sexual_Abuse_Them
+        # 'ACEHVSEX',  # ACE_Forced_Sex
+        # 'ACEADSAF',  # ACE_Adult_Made_Safe
+        # 'ACEADNED',  # ACE_Adult_Met_Needs
+        # Other
+        'PREGNANT',  # Pregnancy_Status
+        # 'RMVTETH4',  # Teeth_Removed
+        'LASTDEN4',  # Last_Dental_Visit
+
+        'PRIMINS2',  # Primary_Insurance
     ]
     try:
         # Check if input file exists
@@ -146,9 +245,8 @@ def xpt_to_csv(xpt_path, csv_path, extract_specific_vars=True):
                 
                 # Create readable column name mapping - Updated for 2024 BRFSS variables
                 column_mapping = {
-                    'SEQNO': 'Patient_ID',
+                    # 'SEQNO': 'Patient_ID',
                     '_AGEG5YR': 'Age_Group_5yr',
-                    'SEXVAR': 'Sex',  # Updated from SEX to SEXVAR
                     'DIABETE4': 'Diabetes_Status',  # Updated from DIABETE3 to DIABETE4
                     'FLUSHOT7': 'Flu_Vaccination',
                     'SMOKE100': 'Smoked_100_Cigarettes_Lifetime',
@@ -169,12 +267,80 @@ def xpt_to_csv(xpt_path, csv_path, extract_specific_vars=True):
                     'GENHLTH': 'General_Health_Status',  # Added new variable
                     'MENTHLTH': 'Mental_Health_Days',
                     'POORHLTH': 'Poor_Physical_Health_Days',
-                    'INCOME3': 'Household_Income_Category',  # Updated from INCOME2 to INCOME3
                     'WEIGHT2': 'Weight_Pounds',  # Added new variable
                     'HEIGHT3': 'Height_Feet_Inches',  # Added new variable
                     '_STATE': 'State_Code',
                     '_PSU': 'Primary_Sampling_Unit',
-                    '_RFHLTH': 'Regional_Health_Prevalence'
+                    '_RFHLTH': 'Regional_Health_Prevalence',
+                    '_INCOMG1': 'Income_Level',
+                    'INCOME3': 'Income_Categories',    # Added new variable
+                    '_SEX': 'Sex',
+                    # --- Added below: Only those not already present ---
+                    # Demographics & Socioeconomic Status
+                    'EDUCA': 'Education_Level',
+                    'RENTHOM1': 'Own_or_Rent_Home',
+                    'EMPLOY1': 'Employment_Status',
+                    'MARITAL': 'Marital_Status',
+                    'VETERAN3': 'Veteran_Status',
+                    'CHILDREN': 'Num_Children',
+                    # '_IMPRACE': 'Imputed_Race',
+                    # '_HISPANC': 'Hispanic_Origin',
+                    # '_RACE': 'Race',
+                    # Health Access & Utilization
+                    
+                    'PERSDOC3': 'Personal_Doctor',
+                    'MEDCOST1': 'Could_Not_Afford_Doctor',
+                    'CHECKUP1': 'Last_Checkup',
+                    # Health Behaviors
+                    # 'USENOW3': 'Smokeless_Tobacco_Use',
+                    # 'ECIGNOW3': 'E_Cig_Use',
+                    # 'AVEDRNK4': 'Avg_Drinks_Per_Day',
+                    # 'SSBSUGR2': 'Sugary_Soda_Freq',
+                    # 'SSBFRUT3': 'Sugary_FruitDrink_Freq',
+                    # Chronic Conditions & Health Status
+                    'PHYSHLTH': 'Physical_Health_NotGood_Days',
+                    'ASTHMA3': 'Asthma_Ever',
+                    'ASTHNOW': 'Asthma_Current',
+                    # 'CHCSCNC1': 'Skin_Cancer',
+                    # 'CHCOCNC1': 'Other_Cancer',
+                    'CHCCOPD3': 'COPD',
+                    'ADDEPEV3': 'Depression',
+                    # 'CHCKDNY2': 'Kidney_Disease',
+                    # 'HAVARTH4': 'Arthritis',
+                    # Disability & Functional Status
+                    # 'DEAF': 'Deaf_or_Hearing_Difficulty',
+                    # 'BLIND': 'Blind_or_Visual_Difficulty',
+                    # 'DECIDE': 'Difficulty_Concentrating',
+                    # 'DIFFDRES': 'Difficulty_Dressing_Bathing',
+                    # 'DIFFALON': 'Difficulty_Doing_Errands_Alone',
+                    # Social Determinants & Adversity
+                    'LSATISFY': 'Life_Satisfaction',
+                    'EMTSUPRT': 'Emotional_Support',
+                    # 'SDLONELY': 'Loneliness',
+                    # 'SDHEMPLY': 'Lost_Employment',
+                    # 'FOODSTMP': 'Received_Food_Stamps',
+                    'SDHFOOD1': 'Food_Insecurity',
+                    'SDHBILLS': 'Unable_to_Pay_Bills',
+                    # 'SDHUTILS': 'Utility_Shutoff_Threat',
+                    # 'SDHTRNSP': 'Transportation_Insecurity',
+                    # 'ACEDEPRS': 'ACE_Depressed_Household',
+                    # 'ACEDRINK': 'ACE_Alcoholic_Household',
+                    # 'ACEDRUGS': 'ACE_Drug_Abuse_Household',
+                    # 'ACEPRISN': 'ACE_Prison_Household',
+                    # 'ACEDIVRC': 'ACE_Parents_Divorced',
+                    # 'ACEPUNCH': 'ACE_Parental_Violence',
+                    # 'ACEHURT1': 'ACE_Parental_Physical_Abuse',
+                    # 'ACESWEAR': 'ACE_Parental_Emotional_Abuse',
+                    # 'ACETOUCH': 'ACE_Sexual_Abuse',
+                    # 'ACETTHEM': 'ACE_Sexual_Abuse_Them',
+                    # 'ACEHVSEX': 'ACE_Forced_Sex',
+                    # 'ACEADSAF': 'ACE_Adult_Made_Safe',
+                    # 'ACEADNED': 'ACE_Adult_Met_Needs',
+                    # Other
+                    'PREGNANT': 'Pregnancy_Status',
+                    # 'RMVTETH4': 'Teeth_Removed',
+                    'LASTDEN4': 'Last_Dental_Visit',
+                    'PRIMINS2': 'Primary_Insurance',
                 }
                 
                 # Rename columns to readable names
