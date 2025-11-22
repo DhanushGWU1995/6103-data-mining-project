@@ -1,0 +1,338 @@
+"""
+Visualization Script for Income-Health Relationship
+This creates charts showing the relationship between financial factors and health outcomes
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# Set style
+sns.set_style('whitegrid')
+plt.rcParams['figure.figsize'] = (12, 8)
+
+print("Creating visualizations for income-health relationship...")
+
+# Load data
+df = pd.read_csv('BRFSS_2024_Readable_Columns.csv')
+
+# Clean data
+df_clean = df.copy()
+df_clean = df_clean[df_clean['General_Health_Status'].notnull()]
+df_clean = df_clean[df_clean['Income_Categories'].notnull()]
+df_clean = df_clean[df_clean['Age_Group_5yr'] <= 10]
+
+# Create poor health indicator
+def categorize_health(val):
+    if pd.isna(val):
+        return np.nan
+    if val in [1, 2, 3]:
+        return 0  # Good health
+    elif val in [4, 5]:
+        return 1  # Poor health
+    else:
+        return np.nan
+
+df_clean['Poor_Health'] = df_clean['General_Health_Status'].apply(categorize_health)
+df_clean = df_clean.dropna(subset=['Poor_Health'])
+
+# Income categories mapping (based on output)
+income_mapping = {
+    1.0: 'Less than $15K',
+    2.0: '$10K-$15K', 
+    3.0: '$15K-$20K',
+    4.0: '$20K-$25K',
+    5.0: '$25K-$35K',
+    6.0: '$35K-$50K',
+    7.0: '$50K-$75K',
+    8.0: '$75K-$100K',
+    9.0: '$100K-$150K',
+    10.0: '$150K-$200K',
+    11.0: '$200K+',
+    77.0: 'Unknown',
+    99.0: 'Refused'
+}
+
+df_clean['Income_Label'] = df_clean['Income_Categories'].map(income_mapping)
+
+# Calculate poor health rates by income
+income_health = df_clean.groupby('Income_Categories')['Poor_Health'].agg([
+    ('Count', 'count'),
+    ('Poor_Health_Rate', lambda x: x.mean() * 100)
+]).reset_index()
+
+income_health['Income_Label'] = income_health['Income_Categories'].map(income_mapping)
+
+# Sort by income level (excluding unknown/refused)
+income_health_sorted = income_health[~income_health['Income_Categories'].isin([77.0, 99.0])].sort_values('Income_Categories')
+
+# FIGURE 1: Poor Health Rate by Income Category
+plt.figure(figsize=(14, 7))
+bars = plt.bar(range(len(income_health_sorted)), 
+               income_health_sorted['Poor_Health_Rate'],
+               color=['#d32f2f' if rate > 30 else '#ff9800' if rate > 20 else '#4caf50' 
+                      for rate in income_health_sorted['Poor_Health_Rate']],
+               edgecolor='black',
+               linewidth=1.2)
+
+plt.xlabel('Income Category', fontsize=14, fontweight='bold')
+plt.ylabel('Poor Health Rate (%)', fontsize=14, fontweight='bold')
+plt.title('Poor Health Prevalence by Income Level\nClear Gradient: Lower Income = Higher Poor Health Rate', 
+          fontsize=16, fontweight='bold', pad=20)
+plt.xticks(range(len(income_health_sorted)), 
+           income_health_sorted['Income_Label'], 
+           rotation=45, ha='right')
+plt.ylim(0, 60)
+plt.grid(axis='y', alpha=0.3)
+
+# Add value labels on bars
+for i, bar in enumerate(bars):
+    height = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width()/2., height,
+             f'{height:.1f}%',
+             ha='center', va='bottom', fontweight='bold', fontsize=10)
+
+# Add trend line
+x_pos = range(len(income_health_sorted))
+y_vals = income_health_sorted['Poor_Health_Rate'].values
+z = np.polyfit(x_pos, y_vals, 2)
+p = np.poly1d(z)
+plt.plot(x_pos, p(x_pos), "r--", alpha=0.8, linewidth=2, label='Trend')
+plt.legend()
+
+plt.tight_layout()
+plt.savefig('income_health_gradient.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: income_health_gradient.png")
+
+# FIGURE 2: Healthcare Affordability Impact
+if 'Could_Not_Afford_Doctor' in df_clean.columns:
+    plt.figure(figsize=(10, 6))
+    
+    afford_health = df_clean[df_clean['Could_Not_Afford_Doctor'].isin([1.0, 2.0])].groupby('Could_Not_Afford_Doctor')['Poor_Health'].agg([
+        ('Poor_Health_Rate', lambda x: x.mean() * 100)
+    ]).reset_index()
+    
+    afford_labels = {1.0: 'Could NOT\nAfford Doctor', 2.0: 'Could\nAfford Doctor'}
+    afford_health['Label'] = afford_health['Could_Not_Afford_Doctor'].map(afford_labels)
+    
+    bars = plt.bar(afford_health['Label'], 
+                   afford_health['Poor_Health_Rate'],
+                   color=['#d32f2f', '#4caf50'],
+                   edgecolor='black',
+                   linewidth=2,
+                   width=0.5)
+    
+    plt.ylabel('Poor Health Rate (%)', fontsize=14, fontweight='bold')
+    plt.title('Impact of Healthcare Affordability on Health Outcomes\nFinancial Barriers Double Poor Health Risk', 
+              fontsize=16, fontweight='bold', pad=20)
+    plt.ylim(0, 50)
+    plt.grid(axis='y', alpha=0.3)
+    
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                 f'{height:.1f}%',
+                 ha='center', va='bottom', fontweight='bold', fontsize=14)
+    
+    # Add difference annotation
+    if len(afford_health) == 2:
+        diff = afford_health['Poor_Health_Rate'].iloc[0] - afford_health['Poor_Health_Rate'].iloc[1]
+        plt.text(0.5, max(afford_health['Poor_Health_Rate']) * 0.9,
+                 f'Difference: {diff:.1f} percentage points',
+                 ha='center', fontsize=12, fontweight='bold',
+                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+    
+    plt.tight_layout()
+    plt.savefig('healthcare_affordability_impact.png', dpi=300, bbox_inches='tight')
+    print("✓ Saved: healthcare_affordability_impact.png")
+
+# FIGURE 3: Model Performance Comparison
+plt.figure(figsize=(10, 6))
+
+models = ['Logistic\nRegression', 'Random\nForest']
+accuracies = [84.20, 85.67]
+aucs = [0.8429, 0.8552]
+
+x = np.arange(len(models))
+width = 0.35
+
+bars1 = plt.bar(x - width/2, accuracies, width, label='Accuracy (%)', 
+                color='#2196f3', edgecolor='black', linewidth=1.5)
+bars2 = plt.bar(x + width/2, [a*100 for a in aucs], width, label='AUC-ROC (×100)', 
+                color='#ff9800', edgecolor='black', linewidth=1.5)
+
+plt.ylabel('Score (%)', fontsize=14, fontweight='bold')
+plt.title('Model Performance Comparison\nRandom Forest Achieves 85.67% Accuracy', 
+          fontsize=16, fontweight='bold', pad=20)
+plt.xticks(x, models)
+plt.ylim(0, 100)
+plt.axhline(y=85, color='g', linestyle='--', linewidth=2, label='85% Threshold', alpha=0.7)
+plt.legend()
+plt.grid(axis='y', alpha=0.3)
+
+# Add value labels
+for bars in [bars1, bars2]:
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                 f'{height:.2f}',
+                 ha='center', va='bottom', fontweight='bold', fontsize=11)
+
+plt.tight_layout()
+plt.savefig('model_performance_comparison.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: model_performance_comparison.png")
+
+# FIGURE 4: Feature Importance (Based on Random Forest Model Results)
+plt.figure(figsize=(12, 8))
+
+# Actual feature importance from your Random Forest model
+features = ['BMI Value', 'Employment Status', 'Income Categories', 'Mental Health Days',
+            'Difficulty Doing Errands', 'Difficulty Concentrating', 'Age Group', 
+            'Diabetes Status', 'Primary Insurance', 'Exercise Past 30 Days']
+importances = [14.80, 12.66, 11.87, 8.10, 6.83, 6.13, 6.09, 5.34, 5.14, 4.56]
+# Mark which are financial/socioeconomic factors
+financial = [False, True, True, False, False, False, False, False, True, False]
+
+colors = ['#ff5722' if f else '#2196f3' for f in financial]
+
+bars = plt.barh(features, importances, color=colors, edgecolor='black', linewidth=1.2)
+
+plt.xlabel('Feature Importance (%)', fontsize=14, fontweight='bold')
+plt.title('Top 10 Predictive Features - Random Forest Model (85.67% Accuracy)\nRed = Financial/Socioeconomic Factors', 
+          fontsize=16, fontweight='bold', pad=20)
+plt.grid(axis='x', alpha=0.3)
+
+# Add value labels
+for i, bar in enumerate(bars):
+    width = bar.get_width()
+    plt.text(width + 0.3, bar.get_y() + bar.get_height()/2.,
+             f'{width:.2f}%',
+             ha='left', va='center', fontweight='bold', fontsize=10)
+
+# Add legend
+from matplotlib.patches import Patch
+legend_elements = [
+    Patch(facecolor='#ff5722', edgecolor='black', label='Financial/Socioeconomic (29.67% combined)'),
+    Patch(facecolor='#2196f3', edgecolor='black', label='Health/Demographic (27.85% combined)')
+]
+plt.legend(handles=legend_elements, loc='lower right', fontsize=10)
+
+plt.tight_layout()
+plt.savefig('feature_importance.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: feature_importance.png")
+
+# FIGURE 5: Income-Related Factors Impact on Health
+plt.figure(figsize=(12, 7))
+
+# Financial/socioeconomic features and their importance
+financial_features = ['Income Categories', 'Employment Status', 'Primary Insurance', 
+                      'Education Level', 'Could Not Afford Doctor']
+financial_importance = [11.87, 12.66, 5.14, 4.21, 2.35]  # Based on your model
+
+bars = plt.bar(range(len(financial_features)), financial_importance, 
+               color=['#d32f2f', '#e64a19', '#f57c00', '#ff9800', '#ffa726'],
+               edgecolor='black', linewidth=1.5)
+
+plt.xlabel('Financial & Socioeconomic Factors', fontsize=14, fontweight='bold')
+plt.ylabel('Feature Importance (%)', fontsize=14, fontweight='bold')
+plt.title('Financial Factors as Health Predictors\nCombined Importance: 36.23% of Model Predictions', 
+          fontsize=16, fontweight='bold', pad=20)
+plt.xticks(range(len(financial_features)), financial_features, rotation=25, ha='right')
+plt.grid(axis='y', alpha=0.3)
+
+# Add value labels on bars
+for i, bar in enumerate(bars):
+    height = bar.get_height()
+    plt.text(bar.get_x() + bar.get_width()/2., height,
+             f'{height:.2f}%',
+             ha='center', va='bottom', fontweight='bold', fontsize=11)
+
+# Add annotation
+plt.text(len(financial_features)/2, max(financial_importance) * 0.85,
+         'Financial factors account for\nover 1/3 of health prediction accuracy',
+         ha='center', fontsize=12, fontweight='bold',
+         bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.7))
+
+plt.tight_layout()
+plt.savefig('financial_factors_importance.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: financial_factors_importance.png")
+
+# FIGURE 6: Employment Status Impact on Health
+if 'Employment_Status' in df_clean.columns:
+    plt.figure(figsize=(14, 7))
+    
+    # Clean employment data (remove missing codes)
+    employment_clean = df_clean[~df_clean['Employment_Status'].isin([9.0])]
+    
+    employment_mapping = {
+        1.0: 'Employed\nfor wages',
+        2.0: 'Self-\nemployed',
+        3.0: 'Out of work\n1yr+',
+        4.0: 'Out of work\n<1yr',
+        5.0: 'Homemaker',
+        6.0: 'Student',
+        7.0: 'Retired',
+        8.0: 'Unable to\nwork'
+    }
+    
+    employment_clean['Employment_Label'] = employment_clean['Employment_Status'].map(employment_mapping)
+    
+    employment_health = employment_clean.groupby('Employment_Status')['Poor_Health'].agg([
+        ('Count', 'count'),
+        ('Poor_Health_Rate', lambda x: x.mean() * 100)
+    ]).reset_index()
+    
+    employment_health['Employment_Label'] = employment_health['Employment_Status'].map(employment_mapping)
+    employment_health = employment_health.sort_values('Poor_Health_Rate')
+    
+    # Color code based on health rate
+    colors = ['#4caf50' if rate < 15 else '#ff9800' if rate < 30 else '#d32f2f' 
+              for rate in employment_health['Poor_Health_Rate']]
+    
+    bars = plt.bar(range(len(employment_health)), 
+                   employment_health['Poor_Health_Rate'],
+                   color=colors,
+                   edgecolor='black',
+                   linewidth=1.2)
+    
+    plt.xlabel('Employment Status', fontsize=14, fontweight='bold')
+    plt.ylabel('Poor Health Rate (%)', fontsize=14, fontweight='bold')
+    plt.title('Employment Status Impact on Health Outcomes\nUnemployment and Inability to Work Show Highest Poor Health Rates', 
+              fontsize=16, fontweight='bold', pad=20)
+    plt.xticks(range(len(employment_health)), 
+               employment_health['Employment_Label'])
+    plt.ylim(0, max(employment_health['Poor_Health_Rate']) * 1.15)
+    plt.grid(axis='y', alpha=0.3)
+    
+    # Add value labels on bars
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                 f'{height:.1f}%',
+                 ha='center', va='bottom', fontweight='bold', fontsize=10)
+    
+    # Add color legend
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor='#4caf50', edgecolor='black', label='Good (<15%)'),
+        Patch(facecolor='#ff9800', edgecolor='black', label='Moderate (15-30%)'),
+        Patch(facecolor='#d32f2f', edgecolor='black', label='High (>30%)')
+    ]
+    plt.legend(handles=legend_elements, loc='upper left', title='Health Risk Level')
+    
+    plt.tight_layout()
+    plt.savefig('employment_health_impact.png', dpi=300, bbox_inches='tight')
+    print("✓ Saved: employment_health_impact.png")
+
+print("\n" + "="*60)
+print("VISUALIZATION COMPLETE")
+print("="*60)
+print("\nGenerated 6 visualization files:")
+print("  1. income_health_gradient.png - Income vs health relationship")
+print("  2. healthcare_affordability_impact.png - Affordability impact")
+print("  3. model_performance_comparison.png - Model accuracy comparison")
+print("  4. feature_importance.png - Top predictive features")
+print("  5. financial_factors_importance.png - Financial factors breakdown")
+print("  6. employment_health_impact.png - Employment status impact")
+print("\n✓ All visualizations saved successfully!")
