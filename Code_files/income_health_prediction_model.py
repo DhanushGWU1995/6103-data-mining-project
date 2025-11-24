@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix, roc_auc_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
+from catboost import CatBoostClassifier, Pool
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -348,6 +349,8 @@ for col in categorical_cols:
     X[col] = le.fit_transform(X[col])
     label_encoders[col] = le
 
+# Get indices of categorical columns for CatBoost
+cat_features_idx = [X.columns.get_loc(col) for col in categorical_cols]
 # Handle missing values in features
 print("Handling missing values...")
 for col in X.columns:
@@ -486,6 +489,58 @@ print("\nConfusion Matrix:")
 print(f"                 Predicted Good  Predicted Poor")
 print(f"Actual Good      {cm_rf[0,0]:14d}  {cm_rf[0,1]:14d}")
 print(f"Actual Poor      {cm_rf[1,0]:14d}  {cm_rf[1,1]:14d}")
+
+
+# ========================================================================
+# Model 3: CatBoost Classifier
+# ========================================================================
+print("\n[Model 3] CatBoost Classifier (Optimized for Poor Health)")
+print("-" * 60)
+
+# Create CatBoost Pool objects
+train_pool = Pool(X_train, y_train, cat_features=cat_features_idx)
+test_pool  = Pool(X_test,  y_test,  cat_features=cat_features_idx)
+
+cb_model = CatBoostClassifier(
+    iterations=500,
+    depth=8,
+    learning_rate=0.05,
+    loss_function='Logloss',
+    eval_metric='AUC',
+    class_weights=[1.0, 2.5],  
+    random_seed=42,
+    verbose=100
+)
+
+cb_model.fit(train_pool, eval_set=test_pool, use_best_model=True)
+
+# Predictions
+y_pred_proba_cb = cb_model.predict_proba(test_pool)[:, 1]
+y_pred_cb = (y_pred_proba_cb > 0.5).astype(int)
+
+# Metrics
+cb_accuracy = accuracy_score(y_test, y_pred_cb)
+cb_auc = roc_auc_score(y_test, y_pred_proba_cb)
+
+print(f"Accuracy: {cb_accuracy*100:.2f}%")
+print(f"AUC-ROC: {cb_auc:.4f}")
+print("\nClassification Report (CatBoost):")
+print(classification_report(y_test, y_pred_cb, target_names=['Good Health', 'Poor Health']))
+
+# Confusion Matrix for CatBoost
+cm_cb = confusion_matrix(y_test, y_pred_cb)
+print("\nConfusion Matrix (CatBoost):")
+print(f"                 Predicted Good  Predicted Poor")
+print(f"Actual Good      {cm_cb[0,0]:14d}  {cm_cb[0,1]:14d}")
+print(f"Actual Poor      {cm_cb[1,0]:14d}  {cm_cb[1,1]:14d}")
+
+model_results['CatBoost'] = {
+    'accuracy': cb_accuracy,
+    'auc': cb_auc,
+    'model': cb_model,
+    'predictions': y_pred_cb
+}
+
 
 
 
