@@ -363,7 +363,132 @@ for col in X.columns:
             print(f"  Filled missing categorical '{col}' with mode.")
 
 print(f"\nFinal feature matrix shape: {X.shape}")
-print(f"\nClass distribution:")
+print(f"\nClass distribution (BEFORE balancing):")
+print(f"  Good Health: {(y==0).sum()} ({(y==0).mean()*100:.2f}%)")
+print(f"  Poor Health: {(y==1).sum()} ({(y==1).mean()*100:.2f}%)")
+
+# ============================================================================
+# STEP 6.5: HANDLE CLASS IMBALANCE - STATE-BASED UNDERSAMPLING
+# ============================================================================
+
+print("\n6.5. HANDLING CLASS IMBALANCE (State-Based Undersampling):")
+print("-" * 60)
+
+# Check if State_Code column exists in df_clean
+if 'State_Code' in df_clean.columns:
+    print("State_Code column found - performing state-based undersampling...")
+    
+    # Get indices for poor health and good health
+    poor_health_indices = df_clean[df_clean['Poor_Health'] == 1].index
+    good_health_indices = df_clean[df_clean['Poor_Health'] == 0].index
+    
+    print(f"Original - Poor Health: {len(poor_health_indices)}, Good Health: {len(good_health_indices)}")
+    
+    # Keep all poor health records
+    balanced_indices = list(poor_health_indices)
+    
+    # For each poor health record, randomly select one good health record from the same state
+    # WITHOUT REPLACEMENT (no duplicates)
+    np.random.seed(42)  # For reproducibility
+    sampled_good_health = []
+    already_sampled = set()  # Track already sampled indices to avoid duplicates
+    
+    # Group poor health records by state for efficient sampling
+    state_groups = df_clean.loc[poor_health_indices].groupby('State_Code').size().to_dict()
+    print(f"\nPoor health records by state: {len(state_groups)} states")
+    
+    # For each state, create a pool of available good health records
+    state_pools = {}
+    for state in state_groups.keys():
+        pool = df_clean[
+            (df_clean['Poor_Health'] == 0) & 
+            (df_clean['State_Code'] == state)
+        ].index.tolist()
+        state_pools[state] = pool
+        print(f"  State {state}: {state_groups[state]} poor health, {len(pool)} good health available")
+    
+    # Sample without replacement for each poor health record
+    fallback_count = 0
+    duplicate_prevention_count = 0
+    
+    for idx in poor_health_indices:
+        state = df_clean.loc[idx, 'State_Code']
+        
+        # Get available good health records from same state (not yet sampled)
+        available_in_state = [i for i in state_pools.get(state, []) if i not in already_sampled]
+        
+        if len(available_in_state) > 0:
+            # Randomly select one from available pool in same state
+            selected_idx = np.random.choice(available_in_state)
+            sampled_good_health.append(selected_idx)
+            already_sampled.add(selected_idx)
+        else:
+            # If no more good health records available in same state, try any other state
+            available_any_state = [i for i in good_health_indices if i not in already_sampled]
+            
+            if len(available_any_state) > 0:
+                selected_idx = np.random.choice(available_any_state)
+                sampled_good_health.append(selected_idx)
+                already_sampled.add(selected_idx)
+                fallback_count += 1
+            else:
+                # Edge case: if all good health records are exhausted (shouldn't happen)
+                print(f"  WARNING: All good health records exhausted at poor health record {idx}")
+                break
+    
+    print(f"\nSampling complete:")
+    print(f"  Total good health records sampled: {len(sampled_good_health)}")
+    print(f"  Unique records: {len(set(sampled_good_health))}")
+    print(f"  Records sampled from different state (fallback): {fallback_count}")
+    
+    if len(sampled_good_health) != len(set(sampled_good_health)):
+        print(f" WARNING: {len(sampled_good_health) - len(set(sampled_good_health))} duplicate records found!")
+    else:
+        print(f" No duplicates - all sampled records are unique!")
+    
+    # Combine poor health and sampled good health indices
+    balanced_indices.extend(sampled_good_health)
+    
+    # Create balanced dataset
+    df_balanced = df_clean.loc[balanced_indices].copy()
+    
+    print(f"After state-based undersampling:")
+    print(f"  Total records: {len(df_balanced)}")
+    print(f"  Poor Health: {(df_balanced['Poor_Health'] == 1).sum()}")
+    print(f"  Good Health: {(df_balanced['Poor_Health'] == 0).sum()}")
+    print(f"  Balance ratio: {(df_balanced['Poor_Health'] == 1).sum() / len(df_balanced) * 100:.2f}%")
+    
+    # Update X and y with balanced data
+    X = df_balanced[available_features].copy()
+    y = df_balanced['Poor_Health'].copy()
+    
+    # Re-encode if needed (after balancing)
+    for col in categorical_cols:
+        if col in X.columns:
+            le = label_encoders[col]
+            X[col] = X[col].astype(str)
+            X[col] = le.transform(X[col])
+    
+    # Re-handle missing values
+    for col in X.columns:
+        if X[col].isnull().any():
+            if X[col].dtype in ['int64', 'float64']:
+                X[col].fillna(X[col].median(), inplace=True)
+            else:
+                X[col].fillna(X[col].mode()[0], inplace=True)
+    
+    print(f"\nBalanced feature matrix shape: {X.shape}")
+    print(f"Balanced target variable shape: {y.shape}")
+    
+else:
+    print("   State_Code column NOT found - skipping state-based undersampling")
+    print("   To enable this feature:")
+    print("   1. Update xpt_to_csv_data_sample.py to include '_STATE' variable")
+    print("   2. Add 'State_Code' to column_mapping")
+    print("   3. Regenerate BRFSS_2024_Readable_Columns.csv")
+    print("   Proceeding with original imbalanced dataset...")
+
+print(f"\nFinal Class distribution (AFTER balancing):")
 print(f"  Good Health: {(y==0).sum()} ({(y==0).mean()*100:.2f}%)")
 print(f"  Poor Health: {(y==1).sum()} ({(y==1).mean()*100:.2f}%)")
 
@@ -398,11 +523,10 @@ model_results = {}
 print("\n[Model 1] Logistic Regression")
 print("-" * 60)
 
-# Train Logistic Regression with class weights
+# Train Logistic Regression (No class weights needed - dataset is balanced 50/50)
 lr_model = LogisticRegression(
     max_iter=2000, 
     random_state=42, 
-    class_weight={0: 1, 1: 2.5},
     C=1.0,
     solver='lbfgs'
 )
@@ -441,14 +565,13 @@ model_results['Logistic Regression'] = {
 print("\n[Model 2] Random Forest Classifier (OPTIMIZED FOR POOR HEALTH)")
 print("-" * 60)
 
-# Use higher class weights for Poor Health in Random Forest too
+# Random Forest (No class weights needed - dataset is balanced 50/50)
 rf_model = RandomForestClassifier(
     n_estimators=300,  # Increased from 200
     max_depth=25,      # Increased from 20
     min_samples_split=8,  # Decreased from 10 for more splits
     min_samples_leaf=3,   # Decreased from 5
     random_state=42,
-    class_weight={0: 1, 1: 2.5},  # Give more weight to Poor Health
     n_jobs=-1,
     max_features='sqrt',
     bootstrap=True
@@ -494,20 +617,20 @@ print(f"Actual Poor      {cm_rf[1,0]:14d}  {cm_rf[1,1]:14d}")
 # ========================================================================
 # Model 3: CatBoost Classifier
 # ========================================================================
-print("\n[Model 3] CatBoost Classifier (Optimized for Poor Health)")
+print("\n[Model 3] CatBoost Classifier")
 print("-" * 60)
 
 # Create CatBoost Pool objects
 train_pool = Pool(X_train, y_train, cat_features=cat_features_idx)
 test_pool  = Pool(X_test,  y_test,  cat_features=cat_features_idx)
 
+# CatBoost (NO class weights needed - dataset is balanced 50/50)
 cb_model = CatBoostClassifier(
     iterations=500,
     depth=8,
     learning_rate=0.05,
     loss_function='Logloss',
     eval_metric='AUC',
-    class_weights=[1.0, 2.5],  
     random_seed=42,
     verbose=100
 )
