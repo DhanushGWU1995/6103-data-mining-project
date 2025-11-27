@@ -78,6 +78,9 @@ def xpt_to_csv(xpt_path, csv_path, extract_specific_vars=True):
         # Target variable
         'GENHLTH',       # General_Health_Status (target variable)
         
+        # ========== FOR CLASS BALANCING (1) ==========
+        '_STATE',        # State_Code (for state-based undersampling)
+        
         # ========== UNUSED FEATURES (COMMENTED OUT) ==========
         # # Additional variables not used in current model
         # 'FLUSHOT7',      # Flu_Vaccination
@@ -213,7 +216,7 @@ def xpt_to_csv(xpt_path, csv_path, extract_specific_vars=True):
                 df_filtered = df[available_vars].copy()
                 print(f"\nFiltered dataset shape: {df_filtered.shape}")
                 
-                # Create readable column name mapping - ONLY 18 VARIABLES (17 features + 1 target)
+                # Create readable column name mapping - ONLY 19 VARIABLES (17 features + 1 target + 1 state)
                 column_mapping = {
                     # ========== FEATURES USED IN MODEL (17) ==========
                     # Financial/Socioeconomic (5)
@@ -249,6 +252,9 @@ def xpt_to_csv(xpt_path, csv_path, extract_specific_vars=True):
                     
                     # Target variable
                     'GENHLTH': 'General_Health_Status',
+                    
+                    # ========== FOR CLASS BALANCING (1) ==========
+                    '_STATE': 'State_Code',
                 }
                 
                 # Rename columns to readable names
