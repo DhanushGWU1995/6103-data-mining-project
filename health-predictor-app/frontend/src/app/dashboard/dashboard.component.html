@@ -1,0 +1,70 @@
+<div class="dashboard">
+  <div class="welcome-card">
+    <h2>Welcome to Health Predictor</h2>
+    <p>Our AI model analyzes 17 key health indicators to provide personalized risk assessments. Get started by filling out the health assessment form.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>Model Performance</h3>
+      <div class="model-list">
+        <div class="model-item best">
+          <strong>CatBoost</strong>
+          <div>Accuracy: 78.11%</div>
+          <div>AUC-ROC: 0.8613</div>
+        </div>
+        <div class="model-item">
+          <strong>Random Forest</strong>
+          <div>Accuracy: 77.49%</div>
+          <div>AUC-ROC: 0.8549</div>
+        </div>
+        <div class="model-item">
+          <strong>Logistic Regression</strong>
+          <div>Accuracy: 75.96%</div>
+          <div>AUC-ROC: 0.8418</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <h3>Key Health Factors</h3>
+      <p>The following factors have the strongest influence on health predictions, ranked by importance:</p>
+      <div class="feature-list">
+        <div class="feature-item" *ngFor="let feature of featureImportance">
+          <div class="feature-name">{{feature.name}}</div>
+          <div class="feature-bar">
+            <div class="feature-fill" [style.width.%]="feature.percentage"></div>
+          </div>
+          <div class="feature-percent">{{feature.percentage}}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3>How It Works</h3>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <h4>Fill Assessment</h4>
+          <p>Answer questions about your demographics, lifestyle, and health conditions.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <h4>AI Analysis</h4>
+          <p>Our CatBoost model processes your data against millions of health records.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <h4>Get Results</h4>
+          <p>Receive your personalized health risk assessment with actionable insights.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

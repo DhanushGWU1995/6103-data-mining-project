@@ -1,0 +1,54 @@
+<div class="results" *ngIf="result">
+  <div class="result-header">
+    <h2>Your Health Assessment Results</h2>
+    <p>Based on the information you provided, here's your personalized health risk analysis.</p>
+  </div>
+
+  <div class="result-card">
+    <div class="prediction-main">
+      <div class="prediction-icon" [class.high-risk]="result.prediction === 'High Risk'" [class.low-risk]="result.prediction === 'Low Risk'">
+        <span *ngIf="result.prediction === 'High Risk'">⚠️</span>
+        <span *ngIf="result.prediction === 'Low Risk'">✅</span>
+      </div>
+      <div class="prediction-content">
+        <h3>{{result.prediction}}</h3>
+        <div class="probability-bar">
+          <div class="probability-fill" [style.width.%]="result.probability * 100"></div>
+        </div>
+        <p class="probability-text">{{result.probability | percent:'1.0-2'}} probability</p>
+      </div>
+    </div>
+
+    <div class="result-details">
+      <div class="detail-item">
+        <strong>Model Used:</strong> {{result.model}}
+      </div>
+      <div class="detail-item">
+        <strong>Analysis:</strong> {{result.explanation}}
+      </div>
+    </div>
+  </div>
+
+  <div class="recommendations">
+    <h3>Recommendations</h3>
+    <div class="rec-list">
+      <div class="rec-item" *ngIf="result.prediction === 'High Risk'">
+        <h4>🏥 Consult a Healthcare Professional</h4>
+        <p>Consider scheduling a check-up with your doctor to discuss your health concerns and develop a personalized wellness plan.</p>
+      </div>
+      <div class="rec-item">
+        <h4>📊 Monitor Your Health Metrics</h4>
+        <p>Keep track of your BMI, exercise habits, and mental health. Small changes can make a big difference.</p>
+      </div>
+      <div class="rec-item">
+        <h4>💡 Lifestyle Adjustments</h4>
+        <p>Focus on balanced nutrition, regular physical activity, and stress management techniques.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn-primary" (click)="retakeAssessment()">Take Assessment Again</button>
+    <button class="btn-secondary" (click)="shareResults()">Share Results</button>
+  </div>
+</div>

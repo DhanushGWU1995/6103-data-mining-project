@@ -664,7 +664,16 @@ model_results['CatBoost'] = {
     'predictions': y_pred_cb
 }
 
+# ===================== MODEL EXPORT FOR WEB APP =============================
+import os
+catboost_export_dir = os.path.join(os.path.dirname(__file__), 'health-predictor-app', 'backend')
+cbm_path = os.path.join(catboost_export_dir, 'catboost_model.cbm')
+pkl_path = os.path.join(catboost_export_dir, 'catboost_model.pkl')
 
-
+print(f"\nExporting CatBoost model to: {cbm_path} and {pkl_path}")
+cb_model.save_model(cbm_path)
+import joblib
+joblib.dump(cb_model, pkl_path)
+print("Model export complete. You can now use these files in the Flask backend.")
 
 # ============================================================================

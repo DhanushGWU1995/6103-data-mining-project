@@ -1,0 +1,310 @@
+<div class="prediction-container">
+  <div class="form-header">
+    <div class="header-content">
+      <div class="header-icon">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" fill="#1976d2"/>
+          <path d="M12 6L13.09 8.26L12 9L10.91 8.26L12 6Z" fill="#1565c0"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1>Health Risk Assessment</h1>
+        <p>Complete this comprehensive assessment to get your personalized health risk prediction</p>
+      </div>
+    </div>
+
+    <div class="progress-indicator">
+      <div class="progress-step" [class.active]="currentPanel >= 0" [class.completed]="currentPanel > 0">
+        <span class="step-number">1</span>
+        <span class="step-label">Financial</span>
+      </div>
+      <div class="progress-line" [class.active]="currentPanel > 0"></div>
+      <div class="progress-step" [class.active]="currentPanel >= 1" [class.completed]="currentPanel > 1">
+        <span class="step-number">2</span>
+        <span class="step-label">Demographics</span>
+      </div>
+      <div class="progress-line" [class.active]="currentPanel > 1"></div>
+      <div class="progress-step" [class.active]="currentPanel >= 2" [class.completed]="currentPanel > 2">
+        <span class="step-number">3</span>
+        <span class="step-label">Health Metrics</span>
+      </div>
+      <div class="progress-line" [class.active]="currentPanel > 2"></div>
+      <div class="progress-step" [class.active]="currentPanel >= 3" [class.completed]="currentPanel > 3">
+        <span class="step-number">4</span>
+        <span class="step-label">Conditions</span>
+      </div>
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="assessment-form">
+    <!-- Financial Factors Panel -->
+    <div class="form-panel" [class.active]="currentPanel === 0" [class.hidden]="currentPanel !== 0">
+      <div class="panel-header">
+        <div class="panel-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H19V9Z" fill="#1976d2"/>
+          </svg>
+        </div>
+        <div class="panel-title">
+          <h2>Financial Factors</h2>
+          <p>Tell us about your financial situation and healthcare access</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div *ngFor="let question of questions.slice(0, 5)" class="form-field">
+          <label class="field-label">{{ question.question }}</label>
+          <div class="input-wrapper">
+            <select
+              *ngIf="question.type === 'select'"
+              [formControlName]="question.field"
+              class="modern-select"
+            >
+              <option value="">Choose an option...</option>
+              <option *ngFor="let option of question.options" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <input
+              *ngIf="question.type === 'number'"
+              [formControlName]="question.field"
+              type="number"
+              [min]="question.min"
+              [max]="question.max"
+              placeholder="Enter value"
+              class="modern-input"
+            />
+            <div class="input-icon">
+              <svg *ngIf="question.type === 'number'" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H19V9Z" fill="#666"/>
+              </svg>
+              <svg *ngIf="question.type === 'select'" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 10L12 15L17 10H7Z" fill="#666"/>
+              </svg>
+            </div>
+          </div>
+          <div *ngIf="form.get(question.field)?.invalid && form.get(question.field)?.touched" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#f44336"/>
+            </svg>
+            {{ question.errorMessage }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demographic Information Panel -->
+    <div class="form-panel" [class.active]="currentPanel === 1" [class.hidden]="currentPanel !== 1">
+      <div class="panel-header">
+        <div class="panel-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="#1976d2"/>
+          </svg>
+        </div>
+        <div class="panel-title">
+          <h2>Demographic Information</h2>
+          <p>Basic information about yourself</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div *ngFor="let question of questions.slice(5, 7)" class="form-field">
+          <label class="field-label">{{ question.question }}</label>
+          <div class="input-wrapper">
+            <select
+              *ngIf="question.type === 'select'"
+              [formControlName]="question.field"
+              class="modern-select"
+            >
+              <option value="">Choose an option...</option>
+              <option *ngFor="let option of question.options" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <input
+              *ngIf="question.type === 'number'"
+              [formControlName]="question.field"
+              type="number"
+              [min]="question.min"
+              [max]="question.max"
+              placeholder="Enter value"
+              class="modern-input"
+            />
+            <div class="input-icon">
+              <svg *ngIf="question.type === 'number'" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H19V9Z" fill="#666"/>
+              </svg>
+              <svg *ngIf="question.type === 'select'" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 10L12 15L17 10H7Z" fill="#666"/>
+              </svg>
+            </div>
+          </div>
+          <div *ngIf="form.get(question.field)?.invalid && form.get(question.field)?.touched" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#f44336"/>
+            </svg>
+            {{ question.errorMessage }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Health Metrics Panel -->
+    <div class="form-panel" [class.active]="currentPanel === 2" [class.hidden]="currentPanel !== 2">
+      <div class="panel-header">
+        <div class="panel-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 4H18V6H16V4ZM16 8H18V10H16V8ZM16 12H18V14H16V12ZM16 16H18V18H16V16ZM14 20V22H2V20H4V18H6V16H8V14H10V12H12V10H14V8H16V6H14V4H12V2H10V4H8V6H6V8H4V10H2V12H4V14H6V16H8V18H10V20H14ZM18 2V4H20V6H22V20H20V22H16V20H14V18H12V16H10V14H8V12H6V10H4V8H6V6H8V4H10V2H12V4H14V6H16V8H18V10H20V12H18V14H16V16H14V18H12V20H10V18H8V16H6V14H4V12H6V10H8V8H10V6H12V4H14V2H18Z" fill="#1976d2"/>
+          </svg>
+        </div>
+        <div class="panel-title">
+          <h2>Health Metrics</h2>
+          <p>Your current health measurements and lifestyle habits</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div *ngFor="let question of questions.slice(7, 10)" class="form-field">
+          <label class="field-label">{{ question.question }}</label>
+          <div class="input-wrapper">
+            <select
+              *ngIf="question.type === 'select'"
+              [formControlName]="question.field"
+              class="modern-select"
+            >
+              <option value="">Choose an option...</option>
+              <option *ngFor="let option of question.options" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <input
+              *ngIf="question.type === 'number'"
+              [formControlName]="question.field"
+              type="number"
+              [min]="question.min"
+              [max]="question.max"
+              placeholder="Enter value"
+              class="modern-input"
+            />
+            <div class="input-icon">
+              <svg *ngIf="question.type === 'number'" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H19V9Z" fill="#666"/>
+              </svg>
+              <svg *ngIf="question.type === 'select'" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 10L12 15L17 10H7Z" fill="#666"/>
+              </svg>
+            </div>
+          </div>
+          <div *ngIf="form.get(question.field)?.invalid && form.get(question.field)?.touched" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#f44336"/>
+            </svg>
+            {{ question.errorMessage }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Health Conditions Panel -->
+    <div class="form-panel" [class.active]="currentPanel === 3" [class.hidden]="currentPanel !== 3">
+      <div class="panel-header">
+        <div class="panel-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#1976d2"/>
+            <path d="M12 6C10.9 6 10 6.9 10 8C10 9.1 10.9 10 12 10C13.1 10 14 9.1 14 8C14 6.9 13.1 6 12 6Z" fill="#1976d2"/>
+          </svg>
+        </div>
+        <div class="panel-title">
+          <h2>Health Conditions</h2>
+          <p>Medical conditions and functional abilities</p>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div *ngFor="let question of questions.slice(10)" class="form-field">
+          <label class="field-label">{{ question.question }}</label>
+          <div class="input-wrapper">
+            <select
+              *ngIf="question.type === 'select'"
+              [formControlName]="question.field"
+              class="modern-select"
+            >
+              <option value="">Choose an option...</option>
+              <option *ngFor="let option of question.options" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <input
+              *ngIf="question.type === 'number'"
+              [formControlName]="question.field"
+              type="number"
+              [min]="question.min"
+              [max]="question.max"
+              placeholder="Enter value"
+              class="modern-input"
+            />
+            <div class="input-icon">
+              <svg *ngIf="question.type === 'number'" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 1H5C3.89 1 3 1.89 3 3V21C3 22.11 3.89 23 5 23H19C20.11 23 21 22.11 21 21V9M19 9H14V4H19V9Z" fill="#666"/>
+              </svg>
+              <svg *ngIf="question.type === 'select'" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 10L12 15L17 10H7Z" fill="#666"/>
+              </svg>
+            </div>
+          </div>
+          <div *ngIf="form.get(question.field)?.invalid && form.get(question.field)?.touched" class="field-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="#f44336"/>
+            </svg>
+            {{ question.errorMessage }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="form-navigation">
+      <button
+        type="button"
+        class="nav-btn secondary"
+        [disabled]="currentPanel === 0"
+        (click)="previousPanel()"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15.41 16.59L10.83 12L15.41 7.41L14 6L8 12L14 18L15.41 16.59Z" fill="currentColor"/>
+        </svg>
+        Previous
+      </button>
+
+      <div class="panel-indicator">
+        <span class="current-panel">{{ currentPanel + 1 }}</span>
+        <span class="total-panels">of 4</span>
+      </div>
+
+      <button
+        *ngIf="currentPanel < 3"
+        type="button"
+        class="nav-btn primary"
+        [disabled]="!isCurrentPanelValid()"
+        (click)="nextPanel()"
+      >
+        Next
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8.59 16.59L13.17 12L8.59 7.41L10 6L16 12L10 18L8.59 16.59Z" fill="currentColor"/>
+        </svg>
+      </button>
+
+      <button
+        *ngIf="currentPanel === 3"
+        type="submit"
+        class="nav-btn primary submit"
+        [disabled]="form.invalid"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" fill="currentColor"/>
+        </svg>
+        Get Prediction
+      </button>
+    </div>
+  </form>
+</div>

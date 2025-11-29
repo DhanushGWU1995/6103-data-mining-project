@@ -1,0 +1,27 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 2em;
+  background: #f8f9fa;
+}
+h1 {
+  color: #1976d2;
+}
+.dashboard, form, .results {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 1.5em;
+  margin-bottom: 2em;
+}
+button {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 0.5em 1.5em;
+  border-radius: 4px;
+  font-size: 1em;
+  cursor: pointer;
+}
+button:hover {
+  background: #1565c0;
+}
