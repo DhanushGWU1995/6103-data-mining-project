@@ -1,0 +1,40 @@
+<div class="app-container">
+  <header class="app-header">
+    <h1>Health Predictor App</h1>
+    <p>Use our AI-powered tool to assess your health risk based on lifestyle and demographic factors</p>
+  </header>
+
+  <nav class="app-nav">
+    <button
+      class="nav-btn"
+      [class.active]="activeTab === 'dashboard'"
+      (click)="activeTab = 'dashboard'">
+      Dashboard
+    </button>
+    <button
+      class="nav-btn"
+      [class.active]="activeTab === 'prediction'"
+      (click)="activeTab = 'prediction'">
+      Health Assessment
+    </button>
+    <button
+      class="nav-btn"
+      [class.active]="activeTab === 'results'"
+      [disabled]="!result"
+      (click)="activeTab = 'results'">
+      Results
+    </button>
+  </nav>
+
+  <main class="app-main">
+    <div *ngIf="activeTab === 'dashboard'">
+      <app-dashboard></app-dashboard>
+    </div>
+    <div *ngIf="activeTab === 'prediction'">
+      <app-prediction-form (predictionResult)="onPrediction($event)"></app-prediction-form>
+    </div>
+    <div *ngIf="activeTab === 'results'">
+      <app-results [result]="result"></app-results>
+    </div>
+  </main>
+</div>
