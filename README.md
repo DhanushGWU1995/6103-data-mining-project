@@ -13,6 +13,9 @@ Raw data file format : .xpt (https://github.com/DhanushGWU1995/6103-data-mining-
 
 Cleaned data file format : .csv (https://github.com/DhanushGWU1995/6103-data-mining-project/blob/main/Data_cleanup_scripts/BRFSS_2024_Readable_Columns.csv)
 
+EDA Output file format : .pkl (https://github.com/DhanushGWU1995/6103-data-mining-project/blob/main/health-predictor-app/backend/catboost_model.pkl)
+
+ML Trained Predictor Web App: (https://github.com/DhanushGWU1995/6103-data-mining-project/blob/main/health-predictor-app)
 EDA Output file format : 
 
 Health Prediction App: https://github.com/DhanushGWU1995/6103-data-mining-project/tree/main/health-predictor-app

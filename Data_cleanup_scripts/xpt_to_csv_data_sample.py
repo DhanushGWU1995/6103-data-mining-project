@@ -23,7 +23,7 @@ def check_available_variables(xpt_path, target_vars):
         if available_vars:
             print("Available BRFSS variables:")
             for var in available_vars[:10]:  # Show first 10
-                print(f"  ✓ {var}")
+                print(f"  * {var}")
             if len(available_vars) > 10:
                 print(f"  ... and {len(available_vars) - 10} more")
         
@@ -204,13 +204,13 @@ def xpt_to_csv(xpt_path, csv_path, extract_specific_vars=True):
             
             print(f"\nBRFSS 2024 Variables found in dataset ({len(available_vars)} out of {len(brfss_variables)}):")
             for var in available_vars:
-                print(f"  ✓ {var}")
+                print(f"  * {var}")
             
             if missing_vars:
                 print(f"\nBRFSS 2024 Variables NOT found in dataset ({len(missing_vars)}):")
                 for var in missing_vars:
-                    print(f"  ✗ {var}")
-            
+                    print(f"  * {var}")
+
             # Filter the dataframe to include only the available BRFSS variables
             if available_vars:
                 df_filtered = df[available_vars].copy()
