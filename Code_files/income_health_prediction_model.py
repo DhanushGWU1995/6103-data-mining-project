@@ -51,7 +51,7 @@ financial_variables = {
 
 for var, desc in financial_variables.items():
     if var in df.columns:
-        print(f"✓ {var}: {desc}")
+        print(f"* {var}: {desc}")
         print(f"  Missing: {df[var].isnull().sum()} ({df[var].isnull().mean()*100:.2f}%)")
 
 # ============================================================================
@@ -149,22 +149,6 @@ if 'Primary_Insurance' in df_clean.columns:
     if removed > 0:
         print(f"   Removed {removed} records with invalid Primary_Insurance codes (77, 99)")
 
-# REMOVED FEATURE: Food_Insecurity (Rank #20, weakest + 55% missing data)
-# if 'Food_Insecurity' in df_clean.columns:
-#     before = len(df_clean)
-#     df_clean = df_clean[~df_clean['Food_Insecurity'].isin([7, 9])]
-#     removed = before - len(df_clean)
-#     if removed > 0:
-#         print(f"   Removed {removed} records with invalid Food_Insecurity codes (7, 9)")
-
-# REMOVED FEATURE: Own_or_Rent_Home (Rank #16, redundant with Income_Categories)
-# if 'Own_or_Rent_Home' in df_clean.columns:
-#     before = len(df_clean)
-#     df_clean = df_clean[~df_clean['Own_or_Rent_Home'].isin([7, 9])]
-#     removed = before - len(df_clean)
-#     if removed > 0:
-#         print(f"   Removed {removed} records with invalid Own_or_Rent_Home codes (7, 9)")
-
 # Exercise_Past_30_Days: Valid = 1-2; Missing = 7, 9
 if 'Exercise_Past_30_Days' in df_clean.columns:
     before = len(df_clean)
@@ -172,14 +156,6 @@ if 'Exercise_Past_30_Days' in df_clean.columns:
     removed = before - len(df_clean)
     if removed > 0:
         print(f"   Removed {removed} records with invalid Exercise_Past_30_Days codes (7, 9)")
-
-# REMOVED FEATURE: Smoked_100_Cigarettes_Lifetime (Rank #19, very weak predictor)
-# if 'Smoked_100_Cigarettes_Lifetime' in df_clean.columns:
-#     before = len(df_clean)
-#     df_clean = df_clean[~df_clean['Smoked_100_Cigarettes_Lifetime'].isin([7, 9])]
-#     removed = before - len(df_clean)
-#     if removed > 0:
-#         print(f"   Removed {removed} records with invalid Smoked_100_Cigarettes_Lifetime codes (7, 9)")
 
 # Diabetes_Status: Valid = 1-4; Missing = 7, 9
 if 'Diabetes_Status' in df_clean.columns:
@@ -205,14 +181,6 @@ if 'Personal_Doctor' in df_clean.columns:
     if removed > 0:
         print(f"   Removed {removed} records with invalid Personal_Doctor codes (7, 9)")
 
-# REMOVED FEATURE: Last_Checkup (Rank #17, redundant with Personal_Doctor)
-# if 'Last_Checkup' in df_clean.columns:
-#     before = len(df_clean)
-#     df_clean = df_clean[~df_clean['Last_Checkup'].isin([7, 9, 77, 99])]
-#     removed = before - len(df_clean)
-#     if removed > 0:
-#         print(f"   Removed {removed} records with invalid Last_Checkup codes (7, 9, 77, 99)")
-
 # Disability measures: Valid = 1-2; Missing = 7, 9
 if 'Difficulty_Doing_Errands_Alone' in df_clean.columns:
     before = len(df_clean)
@@ -234,14 +202,6 @@ if 'Difficulty_Concentrating' in df_clean.columns:
     removed = before - len(df_clean)
     if removed > 0:
         print(f"   Removed {removed} records with invalid Difficulty_Concentrating codes (7, 9)")
-
-# REMOVED FEATURE: Blind_or_Visual_Difficulty (Not in top 20, weakest disability measure)
-# if 'Blind_or_Visual_Difficulty' in df_clean.columns:
-#     before = len(df_clean)
-#     df_clean = df_clean[~df_clean['Blind_or_Visual_Difficulty'].isin([7, 9])]
-#     removed = before - len(df_clean)
-#     if removed > 0:
-#         print(f"   Removed {removed} records with invalid Blind_or_Visual_Difficulty codes (7, 9)")
 
 # Chronic conditions: Valid = 1-2; Missing = 7, 9
 if 'Arthritis' in df_clean.columns:

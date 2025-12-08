@@ -267,9 +267,9 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 ## 👥 Team
 
-- **Dhanush** - Backend Development & ML Model
-- **Vaishali** - Data Analysis & Research
-- **Simbarashe** - Frontend Development & UI/UX
+- **Dhanush** - Data Analysis, Application Development & ML Model
+- **Vaishali** - ML Research & Presentation
+- **Simbarashe** - Data Analysis & ML Research
 
 ## 🙏 Acknowledgments
 
