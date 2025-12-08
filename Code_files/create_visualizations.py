@@ -16,7 +16,7 @@ plt.rcParams['figure.figsize'] = (12, 8)
 print("Creating visualizations for income-health relationship...")
 
 # Load data
-df = pd.read_csv('Code_files/BRFSS_2024_Readable_Columns.csv')
+df = pd.read_csv('BRFSS_2024_Readable_Columns.csv')
 
 # Clean data - MATCHING income_health_prediction_model.py cleaning steps
 df_clean = df.copy()
