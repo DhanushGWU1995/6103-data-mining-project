@@ -28,7 +28,7 @@ print("="*80)
 print("\n1. LOADING DATA...")
 print("-" * 60)
 
-df = pd.read_csv('BRFSS_2024_Readable_Columns.csv')
+df = pd.read_csv('Code_files/BRFSS_2024_Readable_Columns.csv')
 print(f"Initial dataset shape: {df.shape}")
 
 # ============================================================================
